@@ -1,4 +1,5 @@
 const { app, BrowserWindow } = require('electron')
+require('./app.js')
 
 function createWindow() {
   // Create the browser window.
@@ -11,7 +12,8 @@ function createWindow() {
   })
 
   // and load the index.html of the app.
-  win.loadFile('index.html')
+  win.loadURL('http://localhost:3000/')
+  
 }
 
 app.on('ready', createWindow)
