@@ -5,6 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "postinstall": "install-app-deps",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -21,6 +22,7 @@
     "sqlite3": "^4.1.0"
   },
   "devDependencies": {
-    "electron": "^6.0.10"
+    "electron": "^6.0.10",
+    "electron-builder": "^21.2.0"
   }
 }
