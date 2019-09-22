@@ -1,117 +1,87 @@
 const sqlite3 = require('sqlite3').verbose()
+const bodyParser = require('body-parser')
+const { queryDB } = require('./dbController')
 
-let db = new sqlite3.Database('./db/pr.db', (err) => {
-  if (err) {
-    console.error(err.message)
-  }
-  console.log('Connected to the pr database.');
-})
+let urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-/*let sql = `CREATE TABLE IF NOT EXISTS tb_pr (
-  id_pr INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-  pr_name TEXT NOT NULL,
-  pr_sector TEXT NOT NULL,
-  pr_date INT NOT NULL,
-  pr_value REAL
-);`
-
-db.run(sql, (res, err) => {
-  if (err) {
-    return console.log(err.message);
-  }
-})
-
-sql = `INSERT INTO tb_promo(promo_name, promo_ressarciment_date, promo_ressarciment_value, fk_pr)
-          VALUES (?, ?, ?, ?)`
-
-db.run(sql, ['Ação 22', 125166669, 874.51, 2], (err) => {
-  if (err) {
-    return console.log(err.message);
-  }
-  // get the last insert id
-  console.log(`A row has been inserted with rowid ${this.id_pr}`);
-})*/
-
-let pr = []
-let promo = []
-
-sql = `SELECT tb_pr.id_pr,
-       tb_pr.pr_name,
-       tb_pr.pr_sector,
-       tb_pr.pr_date,
-       SUM(tb_promo.promo_ressarciment_value) "pr_value",
-       SUM(tb_promo.promo_ressarciment_value) - tb_pr.pr_value "pr_diff"
-FROM tb_pr
-LEFT JOIN tb_promo
-ON tb_pr.id_pr = tb_promo.fk_pr
-GROUP BY tb_pr.id_pr, tb_pr.pr_name, tb_pr.pr_sector, tb_pr.pr_date`
-
-db.each(sql, [], (err, row) => {
-  if (err) {
-    return console.error(err.message);
-  }
-  return pr.push(row)
-})
-
-sql = `SELECT tb_promo.id_promo,
-       tb_promo.fk_pr,
-       tb_promo.promo_name,
-       tb_pr.pr_sector,
-       tb_pr.pr_date,
-       tb_promo.promo_ressarciment_date,
-       tb_promo.promo_ressarciment_value
-FROM tb_pr
-INNER JOIN tb_promo
-ON tb_pr.id_pr = tb_promo.fk_pr`
-
-db.each(sql, [], (err, row) => {
-  if (err) {
-    return console.error(err.message);
-  }
-  return promo.push(row)
-})
-
-db.close()
-
-let data = [{
-  id: '1',
-  description: 'Ação One Page',
-  area: 'Trade',
-  date: '09/09/2019',
-  originalValue: 19542.84,
-  prValue: '',
-  ressarcimentDate: '',
-  ressarcimentValue: ''
-}, {
-  id: '2',
-  description: 'Ação Two Page',
-  area: 'Comercial',
-  date: '15/09/2019',
-  originalValue: 19000.21,
-  prValue: '',
-  ressarcimentDate: '',
-  ressarcimentValue: ''
-}]
+let dbName = 'pr'
+let prSql = `SELECT p.id_pr,
+        p.pr_name,
+        p.pr_sector,
+        p.pr_date,
+        SUM(a.action_original_value) "pr_value",
+        SUM(a.action_original_value) - p.pr_value "pr_diff"
+  FROM tb_pr p
+  LEFT JOIN tb_action a
+  ON p.id_pr = a.fk_pr
+  GROUP BY p.id_pr, p.pr_name, p.pr_sector, p.pr_date`
+let actionSql = `SELECT a.id_action,
+        a.fk_pr,
+        a.action_name,
+        p.pr_sector,
+        p.pr_date,
+        a.action_original_value,
+        a.action_ressarciment_date,
+        a.action_ressarciment_value
+  FROM tb_pr p
+  INNER JOIN tb_action a
+  ON p.id_pr = a.fk_pr`
 
 module.exports = (app) => {
 
   app.get('/', (req, res) => {
-    res.render('index', { pr: pr, promo: promo })
+    let pr = queryDB(dbName, prSql)
+    pr.then((pr) => {
+      res.render('index', { pr: pr, action: action })
+
+    })
   })
 
-  app.get('/new', (req, res) => {
+  app.get('/create', (req, res) => {
+    res.render('create')
+  })
 
-    sql = `INSERT INTO tb_pr(pr_name, pr_sector, pr_date, pr_value)
-          VALUES (?, ?, ?, ?)`
+  app.post('/create', urlencodedParser, (req, res) => {
+    const { pr_description, pr_sector, pr_date, action_name, action_original_value } = req.body
 
-    db.run(sql, ['One page', 'Trade', 11155611, 1562.12], (err) => {
+    let prSql = `INSERT INTO tb_pr(pr_name, pr_sector, pr_date)
+          VALUES (?, ?, ?)`
+
+    let actionSql = `INSERT INTO tb_action(action_name, action_original_value, fk_pr)
+          VALUES (?, ?, ?)`
+
+    let lastIdSql = `SELECT id_pr FROM tb_pr ORDER BY id_pr DESC LIMIT 1`
+
+    db.run(prSql, [pr_description, pr_sector, pr_date], (err) => {
       if (err) {
         return console.log(err.message);
       }
-      // get the last insert id
-      console.log(`A row has been inserted with rowid ${this.id_pr}`);
+
+      db.get(lastIdSql, [], (err, row) => {
+        if (err) {
+          return console.error(err.message);
+        }
+
+        if (Array.isArray(action_name)) {
+          for (let i = 0; i < action_name.length; i++) {
+            db.run(actionSql, [action_name[i], action_original_value[i], row.id_pr], (err) => {
+              if (err) {
+                return console.log(err.message);
+              }
+            })
+          }
+        } else {
+          db.run(actionSql, [action_name, pr_date, row.id_pr], (err) => {
+            if (err) {
+              return console.log(err.message);
+            }
+          })
+        }
+        
+      })
     })
 
+    res.redirect('/')
   })
 
 }

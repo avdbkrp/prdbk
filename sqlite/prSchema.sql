@@ -11,40 +11,41 @@ VALUES ('Two page', 'Trade', 11155611, 1562.12)
 
 SELECT * FROM tb_pr
 
-CREATE TABLE IF NOT EXISTS tb_promo (
-  id_promo INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-  promo_name TEXT NOT NULL,
-  promo_original_value REAL NOT NULL,
-  promo_ressarciment_date REAL,
-  promo_ressarciment_value REAL,
+CREATE TABLE IF NOT EXISTS tb_action (
+  id_action INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  action_name TEXT NOT NULL,
+  action_original_value REAL NOT NULL,
+  action_ressarciment_date REAL,
+  action_ressarciment_value REAL,
   fk_pr INTEGER NOT NULL,
   FOREIGN KEY (fk_pr) REFERENCES tb_pr (id_pr)
 );
 
-INSERT INTO tb_promo(promo_name, promo_ressarciment_date, promo_ressarciment_value, fk_pr)
+INSERT INTO tb_action(action_name, action_ressarciment_date, action_ressarciment_value, fk_pr)
 VALUES ('Ação 22', 125166669, 874.51, 2)
 
-SELECT * FROM tb_promo
+SELECT * FROM tb_action
 
-SELECT tb_pr.id_pr,
-       tb_pr.pr_name,
-       tb_pr.pr_sector,
-       tb_pr.pr_date,
-       SUM(tb_promo.promo_ressarciment_value) "pr_value",
-       SUM(tb_promo.promo_ressarciment_value) - tb_pr.pr_value "pr_diff"
-FROM tb_pr
-LEFT JOIN tb_promo
-ON tb_pr.id_pr = tb_promo.fk_pr
+SELECT p.id_pr,
+       p.pr_name,
+       p.pr_sector,
+       p.pr_date,
+       SUM(a.action_original_value) "pr_value",
+       SUM(a.action_original_value) - p.pr_value "pr_diff"
+FROM tb_pr p
+LEFT JOIN tb_action a
+ON p.id_pr = a.fk_pr
+GROUP BY p.id_pr, p.pr_name, p.pr_sector, p.pr_date
 
 
-SELECT tb_promo.id_promo,
-       tb_promo.fk_pr,
-       tb_promo.promo_name,
-       tb_pr.pr_sector,
-       tb_pr.pr_date,
-       tb_promo.promo_original_value,
-       tb_promo.promo_ressarciment_date,
-       tb_promo.promo_ressarciment_value
-FROM tb_pr
-INNER JOIN tb_promo
-ON tb_pr.id_pr = tb_promo.fk_pr
+SELECT a.id_action,
+       a.fk_pr,
+       a.action_name,
+       p.pr_sector,
+       p.pr_date,
+       a.action_original_value,
+       a.action_ressarciment_date,
+       a.action_ressarciment_value
+FROM tb_pr p
+INNER JOIN tb_action a
+ON p.id_pr = a.fk_pr

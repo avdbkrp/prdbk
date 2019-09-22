@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css">
+
+  <title>Acompanhamento de PRs</title>
+</head>
+
+<body class="container">
+
+  <a href="/">Acompanhamento de PRs</a>
+
+  <form method="POST" action="/create">
+    <div class="form-row">
+      <div class="form-group col-md-4">
+        <label for="pr-desciption">Descrição da PR</label>
+        <input type="text" class="form-control" id="pr-desciption" name="pr_description" placeholder="Descrição da PR" required>
+      </div>
+      <div class="form-group col-md-4">
+        <label for="pr-sector">Setor</label>
+        <input type="text" class="form-control" id="pr-sector" name="pr_sector" placeholder="Setor" required>
+      </div>
+      <div class="form-group col-md-4">
+        <label for="pr-date">Data</label>
+        <input type="text" class="form-control" id="pr-date" name="pr_date" placeholder="Data" required>
+      </div>
+    </div>
+    <div class="text-center mb-2">
+      <input class="btn btn-success" id="plusBtn" type="button" value="+"></input>
+      <input class="btn btn-success" id="minusBtn" type="button" value="-"></input>
+    </div>
+
+    <fieldset id="1">
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label for="pr-desciption">Nome da Ação</label>
+          <input type="text" class="form-control" id="pr-desciption" name="action_name" placeholder="Descrição da PR" required>
+        </div>
+        <div class="form-group col-md-6">
+          <label for="pr-sector">Valor</label>
+          <input type="text" class="form-control" id="pr-sector" name="action_original_value" placeholder="Setor" required>
+        </div>
+      </div>
+    </fieldset>
+
+    <button type="submit" class="btn btn-success">Adicionar</button>
+  </form>
+
+  <script>
+    window.$ = window.jQuery = require('jquery')
+    window.Bootstrap = require('bootstrap')
+  </script>
+  <script src="/js/functions.js"></script>
+
+</body>
+
+</html>
