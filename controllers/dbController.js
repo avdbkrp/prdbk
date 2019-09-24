@@ -31,3 +31,35 @@ module.exports.queryAction = async () => {
       'a.action_ressarciment_value'
     ).join('tb_action as a', {'p.id_pr': 'a.fk_pr'})
 }
+
+module.exports.createPR = async (data) => {
+  const { pr_description, pr_sector, pr_date, action_name, action_original_value } = data
+
+  return await knex('tb_pr')
+    .insert({
+      pr_name: pr_description,
+      pr_sector: pr_sector,
+      pr_date: pr_date
+    }).then(async (row) => {
+      let id = row[0]
+      let i = 0
+      if (Array.isArray(action_name)) {
+        while (i < action_name.length) {
+          await knex('tb_action')
+            .insert({
+              action_name: action_name[i],
+              action_original_value: action_original_value[i],
+              fk_pr: id
+            })
+            .then(i++)
+        }
+      } else {
+        await knex('tb_action')
+          .insert({
+            action_name: action_name,
+            action_original_value: action_original_value,
+            fk_pr: id
+          })
+      }
+    })
+}
