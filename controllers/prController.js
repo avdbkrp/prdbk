@@ -1,5 +1,5 @@
 const bodyParser = require('body-parser')
-const { queryPR, queryAction, createPR } = require('./dbController')
+const { queryPR, queryAction, createPR } = require('./queries')
 
 let urlencodedParser = bodyParser.urlencoded({ extended: false })
 
@@ -18,8 +18,7 @@ module.exports = (app) => {
   })
 
   app.post('/create', urlencodedParser, (req, res) => {
-    createPR(req.body)
-      .then(res.redirect('/'))
+    createPR(req.body, () => res.redirect('/'))
   })
 
 }

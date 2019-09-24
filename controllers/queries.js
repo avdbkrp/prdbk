@@ -32,7 +32,7 @@ module.exports.queryAction = async () => {
     ).join('tb_action as a', {'p.id_pr': 'a.fk_pr'})
 }
 
-module.exports.createPR = async (data) => {
+module.exports.createPR = async (data, callback) => {
   const { pr_description, pr_sector, pr_date, action_name, action_original_value } = data
 
   return await knex('tb_pr')
@@ -51,7 +51,7 @@ module.exports.createPR = async (data) => {
               action_original_value: action_original_value[i],
               fk_pr: id
             })
-            .then(i++)
+          i++
         }
       } else {
         await knex('tb_action')
@@ -61,5 +61,6 @@ module.exports.createPR = async (data) => {
             fk_pr: id
           })
       }
+      callback()
     })
 }
